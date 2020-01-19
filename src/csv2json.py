@@ -7,6 +7,32 @@ import geojson
 import json
 
 
+def getPoint(row):
+    x = float(row['Gis_X'].replace(',', '.'))
+    y = float(row['Gis_Y'].replace(',', '.'))
+    latlon = utm.to_latlon(x, y, 30, northern=True)
+    point = geojson.Point(latlon[::-1], precision=8)
+    return point
+
+def getZona(row):
+    zona = row['Barrio'][1] + row['Barrio'][4]
+    return zona
+
+def getCalle(row, number_field):
+    calle = row['Calle'].split(", ")
+    calle = " ".join(calle[1:] + [calle[0]])
+    if number_field:
+        calle = calle + " " + row[number_field]
+    return calle
+
+def addFeature(feature, zona, featureColls):
+    try:
+        coll = featureColls[zona]
+    except KeyError:
+        coll = []
+        featureColls[zona] = coll
+    coll.append(feature)
+
 def run(inputcsv, parquimetros, outputgeojson, encoding):
     featureColls = {}
     colors = {"Verde": "green", "Azul": "blue", "Rojo": "red", "Naranja": "orange"}
@@ -14,52 +40,35 @@ def run(inputcsv, parquimetros, outputgeojson, encoding):
     with open(parquimetros, newline='', encoding=encoding) as csvfile:
         reader = csv.DictReader(csvfile, delimiter=';')
         for row in reader:
-            x = float(row['Gis_X'].replace(',', '.'))
-            y = float(row['Gis_Y'].replace(',', '.'))
-            latlon = utm.to_latlon(x, y, 30, northern=True)
-            point = geojson.Point(latlon[::-1], precision=8)
-            zona = row['Barrio'][1] + row['Barrio'][4]
+            point = getPoint(row)
+            zona = getZona(row)
+            calle = getCalle(row, 'Número de Finca')
             stroke = "black"
-            calle = row['Calle'].split(", ")
-            description = " ".join(calle[1:] + [calle[0]]) + " " + row['Número de Finca']
             feature = geojson.Feature(geometry=point, properties={
-                "description": "Parquímetro " + row['Matrícula'] + "<br> " + description + "<br> Zona: " + zona,
+                "description": "Parquímetro " + row['Matrícula'] + "<br> " + calle + "<br> Zona: " + zona,
                 "stroke": stroke,
                 "zona": zona,
                 "parquimetro": True,
                 "circle": {"radius": 5, "fillColor": stroke, "color": stroke, "fillOpacity": 0.8}
                 })
-            try:
-                coll = featureColls[zona]
-            except KeyError:
-                coll = []
-                featureColls[zona] = coll
-            coll.append(feature)
+            addFeature(feature, zona, featureColls)
 
     with open(inputcsv, newline='', encoding=encoding) as csvfile:
         reader = csv.DictReader(csvfile, delimiter=';')
         for row in reader:
-            x = float(row['Gis_X'].replace(',', '.'))
-            y = float(row['Gis_Y'].replace(',', '.'))
-            latlon = utm.to_latlon(x, y, 30, northern=True)
-            point = geojson.Point(latlon[::-1], precision=8)
-            zona = row['Barrio'][1] + row['Barrio'][4]
+            point = getPoint(row)
+            zona = getZona(row)
+            calle = getCalle(row, 'Nº Finca')
             stroke = colors[row['Color']]
-            calle = row['Calle'].split(", ")
-            description = " ".join(calle[1:] + [calle[0]]) + " " + row['Nº Finca']
             plazas = int(row['Número de Plazas'])
             feature = geojson.Feature(geometry=point, properties={
-                "description": description + "<br> plazas: " + str(plazas) + "<br> Zona: " + zona,
+                "description": calle + "<br> plazas: " + str(plazas) + "<br> Zona: " + zona,
                 "stroke": stroke,
                 "zona": zona,
-                "circle": {"radius": 5 + plazas/8.0, "fillColor": stroke, "color": stroke, "fillOpacity": 0.9}
+                "circle": {"radius": 5 + plazas/8.0, "fillColor": stroke, "color": stroke, "fillOpacity": 0.8}
                 })
-            try:
-                coll = featureColls[zona]
-            except KeyError:
-                coll = []
-                featureColls[zona] = coll
-            coll.append(feature)
+            addFeature(feature, zona, featureColls)
+
     allFeatures = []
     for k, v in featureColls.items():
         allFeatures.append( geojson.FeatureCollection(v, properties={"zona": k}))

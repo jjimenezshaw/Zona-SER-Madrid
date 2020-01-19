@@ -3,25 +3,26 @@
 var center = [40.4338300, -3.6886756];
 var zoom = 14;
 
+var copyr = '<a href="http://javier.jimenezshaw.com" target="_blank">@ Javier Jimenez Shaw</a> | ';
 // Define some base layers
 var osm = L.tileLayer(
     '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    {attribution: '© OpenStreetMap contributors', maxZoom: 19}
+    {attribution: copyr + '© OpenStreetMap contributors', maxZoom: 19}
 );
 
 var wiki = L.tileLayer(
     '//maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png',
-    {attribution: '© OpenStreetMap contributors', maxZoom: 19}
+    {attribution: copyr + '© OpenStreetMap contributors', maxZoom: 19}
 );
 
 var esri_map =  L.tileLayer(
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
-    {attribution: '© Esri.com', maxZoom: 19}
+    {attribution: copyr + '© Esri.com', maxZoom: 19}
 );
 
 var esri_sat =  L.tileLayer(
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    {attribution: '© Esri.com', maxZoom: 21}
+    {attribution: copyr + '© Esri.com', maxZoom: 21}
 );
 
 // The map
@@ -42,6 +43,12 @@ xhr0.onload = function() {
     if (xhr0.status !== 200) return
     var jsonLayer = L.geoJSON(xhr0.response,
         {
+            style: {
+                fillColor: 'yellow',
+                color: 'MEDIUMORCHID',
+                opacity: 0.8,
+                fillOpacity: 0.05
+            },
             onEachFeature: function (feature, layer) {
                 if (feature.properties.name) {
                     var id = feature.properties.name.substr(0,2);
