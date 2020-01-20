@@ -25,6 +25,13 @@ var esri_sat =  L.tileLayer(
     {attribution: copyr + '© Esri.com', maxZoom: 21}
 );
 
+var baseTree = [
+    {label: "OSM", layer: osm},
+    {label: "Wikimedia", layer: wiki},
+    {label: "Esri Map", layer: esri_map},
+    {label: "Esri Sat", layer: esri_sat},
+];
+
 // The map
 var map = L.map('map', {
     layers: [wiki],
@@ -33,6 +40,12 @@ var map = L.map('map', {
     maxZoom: 21,
 });
 
+var layers_in_control = [];
+var tree = L.control.layers.tree(baseTree, layers_in_control, {collapsed: false});
+tree.addTo(map);
+
+
+var zonas_ids = []
 var zonas_layerGroup = {}
 
 var xhr0 = new XMLHttpRequest();
@@ -52,6 +65,7 @@ xhr0.onload = function() {
             onEachFeature: function (feature, layer) {
                 if (feature.properties.name) {
                     var id = feature.properties.name.substr(0,2);
+                    zonas_ids.push(id);
                     layer.bindTooltip(feature.properties.name, {opacity: 0.5}).openTooltip();
                     layer.on('click', function(ev) {
                         if (id in zonas_layerGroup) {
@@ -67,56 +81,59 @@ xhr0.onload = function() {
             }
         });
     jsonLayer.addTo(map);
+    download_zonas_json();
 }
 xhr0.send();
 
-var xhr1 = new XMLHttpRequest();
-xhr1.open('GET', 'plazas_zona_ser.geojson');
-xhr1.setRequestHeader('Content-Type', 'application/json');
-xhr1.responseType = 'json';
-xhr1.onload = function() {
-    if (xhr1.status !== 200) return
-    var zonas = {}
-    L.geoJSON(xhr1.response,
-        {
-            style: function (feature) {
-                if (feature.properties.style) {
-                    return feature.properties.style;
-                }
-            },
-            pointToLayer: function (feature, latlng) {
-                if (feature.properties.circle) {
-                    return L.circleMarker(latlng, feature.properties.circle);
-                } else {
-                    return L.marker(latlng);
-                }
-            },
-            onEachFeature: function (feature, layer) {
-                var zona = feature.properties.zona;
-                var description = feature.properties.description;
-                if (zona) {
-                    zonas[zona] = zonas[zona] || [];
-                    zonas[zona].push(layer);
-                }
-                if (description) {
-                    layer.bindPopup(description);
-                }
-            }
-        });
+function download_zonas_json() {
+    zonas_ids.forEach(function(zona, index) {
+        var xhr1 = new XMLHttpRequest();
+        xhr1.open('GET', 'plazas_zona_ser_' + zona + '.geojson');
+        xhr1.setRequestHeader('Content-Type', 'application/json');
+        xhr1.responseType = 'json';
+        xhr1.onload = function() {
+            if (xhr1.status !== 200) return
+            var zonas = {}
+            L.geoJSON(xhr1.response,
+                {
+                    style: function (feature) {
+                        if (feature.properties.style) {
+                            return feature.properties.style;
+                        }
+                    },
+                    pointToLayer: function (feature, latlng) {
+                        if (feature.properties.circle) {
+                            return L.circleMarker(latlng, feature.properties.circle);
+                        } else {
+                            return L.marker(latlng);
+                        }
+                    },
+                    onEachFeature: function (feature, layer) {
+                        var zona = feature.properties.zona;
+                        var description = feature.properties.description;
+                        if (zona) {
+                            zonas[zona] = zonas[zona] || [];
+                            zonas[zona].push(layer);
+                        }
+                        if (description) {
+                            layer.bindPopup(description);
+                        }
+                    }
+                });
 
-    var layers_in_control = [];
-    Object.keys(zonas).sort().forEach(function(zona) {
-        var layers = zonas[zona];
-        zonas_layerGroup[zona] = L.layerGroup(layers);
-        layers_in_control.push({label: "Zona " + zona, layer: zonas_layerGroup[zona]});
+            Object.keys(zonas).sort().forEach(function(zona) {
+                var layers = zonas[zona];
+                zonas_layerGroup[zona] = L.layerGroup(layers);
+                layers_in_control.push({label: "Zona " + zona, layer: zonas_layerGroup[zona]});
+            });
+
+            layers_in_control.sort(function(a,b) { return a.label.localeCompare(b.label)});
+            var lastAdd = layers_in_control.length == zonas_ids.length;
+            tree.remove();
+            tree = L.control.layers.tree(baseTree, layers_in_control, {collapsed: lastAdd});
+            tree.addTo(map);
+            if (lastAdd) console.log("Zonas Loaded " + layers_in_control.length)
+        };
+        xhr1.send();
     });
-    var baseTree = [
-            {label: "OSM", layer: osm},
-            {label: "Wikimedia", layer: wiki},
-            {label: "Esri Map", layer: esri_map},
-            {label: "Esri Sat", layer: esri_sat},
-        ];
-    var tree = L.control.layers.tree(baseTree, layers_in_control, {collapsed: false});
-    tree.addTo(map);
-};
-xhr1.send();
+}

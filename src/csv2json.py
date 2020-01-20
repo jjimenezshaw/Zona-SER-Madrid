@@ -69,12 +69,13 @@ def run(inputcsv, parquimetros, outputgeojson, encoding):
                 })
             addFeature(feature, zona, featureColls)
 
-    allFeatures = []
+    zonas = []
     for k, v in featureColls.items():
-        allFeatures.append( geojson.FeatureCollection(v, properties={"zona": k}))
-
-    with open(outputgeojson, "w") as write_file:
-        json.dump(allFeatures, write_file)
+        zonas.append(k)
+        features = geojson.FeatureCollection(v, properties={"zona": k})
+        with open(outputgeojson + k + ".geojson", "w") as write_file:
+            json.dump(features, write_file)
+    print(zonas.sort())
 
 
 if __name__ == '__main__':
@@ -86,7 +87,7 @@ if __name__ == '__main__':
                         default='../sources/Parquimetros_2019.csv',
                         help='fichero csv de parquímetros de la Zona SER Madrid')
     parser.add_argument('-o', '--output', dest='outputgeojson',
-                        default='../web/plazas_zona_ser.geojson',
+                        default='../web/plazas_zona_ser_',
                         help='fichero GeoJSON de salida')
     parser.add_argument('-e', '--encoding', dest='encoding',
                         default='ISO-8859-1',
