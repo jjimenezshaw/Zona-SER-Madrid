@@ -1,5 +1,8 @@
 "use strict"
 
+var zonas_ids = []
+var zonas_layerGroup = {}
+
 function load_json (path, callback) {
     var xhr0 = new XMLHttpRequest();
     xhr0.open('GET', path);
@@ -10,6 +13,55 @@ function load_json (path, callback) {
         callback(xhr0.response);
     };
     xhr0.send();
+}
+function compute_url() {
+    var selected = [];
+    Object.keys(zonas_layerGroup).forEach(function(id){
+        var lay = zonas_layerGroup[id];
+        if (map.hasLayer(lay)) {
+            selected.push(id);
+        }
+    });
+    var center = map.getCenter().lat.toFixed(6) + "," + map.getCenter().lng.toFixed(6);
+    var zoom = map.getZoom();
+
+    update_url(center, zoom, selected.join(","));
+}
+function update_url(center, zoom, selected) {
+    var url = window.location.href;
+    var urlParts = url.split('?');
+    if (urlParts.length > 0) {
+        var baseUrl = urlParts[0];
+
+        var selected_str = selected ? '&s=' + selected : ''
+        var updatedQueryString = 'c=' + center + '&z=' + zoom + selected_str;
+
+        var updatedUri = baseUrl + '?' + updatedQueryString;
+        window.history.replaceState({}, document.title, updatedUri);
+    }
+}
+
+function parse_url() {
+    // see also https://stackoverflow.com/questions/8486099/how-do-i-parse-a-url-query-parameters-in-javascript
+    var params = {};
+    var search = location.search.substr(1);
+    if (search.length === 0) {
+        return {};
+    }
+    var definitions = search.split('&');
+    if (definitions.length < 2) {
+        search = decodeURIComponent(search);
+        definitions = search.split('&');
+    }
+
+    definitions.forEach(function (val) {
+        var parts = val.split('=', 2);
+        var key = decodeURIComponent(parts[0]);
+        var value = parts[1];
+        params[key] = value;
+    });
+
+    return params;
 }
 
 var center = [40.4338300, -3.6886756];
@@ -28,12 +80,12 @@ var wiki = L.tileLayer(
     {attribution: copyr + '© OpenStreetMap contributors', maxZoom: 19}
 );
 
-var esri_map =  L.tileLayer(
+var esri_map = L.tileLayer(
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
     {attribution: copyr + '© Esri.com', maxZoom: 19}
 );
 
-var esri_sat =  L.tileLayer(
+var esri_sat = L.tileLayer(
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     {attribution: copyr + '© Esri.com', maxZoom: 21}
 );
@@ -61,10 +113,6 @@ var barrio_text = L.control({position: 'bottomleft'});
 barrio_text.onAdd = function(map) {return L.DomUtil.create('div', 'text_barrio')};
 barrio_text.onRemove = function(map) {};
 barrio_text.addTo(map);
-
-
-var zonas_ids = []
-var zonas_layerGroup = {}
 
 load_json('zonas_ser.geojson', function(response){
     var jsonLayer = L.geoJSON(response,
@@ -143,7 +191,23 @@ function download_plazas_json() {
             tree.remove();
             tree = L.control.layers.tree(baseTree, layers_in_control, {collapsed: lastAdd});
             tree.addTo(map);
-            if (lastAdd) console.log("Zonas Loaded " + layers_in_control.length)
+            if (lastAdd) {
+                map.on('moveend zoomend overlayadd overlayremove', function() {
+                    compute_url();
+                });
+                var params = parse_url();
+                console.log("Zonas Loaded " + layers_in_control.length);
+                if (params['z'] && params['c']) {
+                    map.flyTo(params['c'].split(','), parseInt(params['z']));
+                }
+                if (params['s']) {
+                    params['s'].split(',').forEach(function(id) {
+                        if (id in zonas_layerGroup) {
+                            map.addLayer(zonas_layerGroup[id]);
+                        }
+                    });
+                }
+            }
         });
     });
 }
