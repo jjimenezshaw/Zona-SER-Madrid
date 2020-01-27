@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Zona SER Madrid</title>
+
+    <link rel="shortcut icon" href="favicon.png" />
+
+    <meta name="description" content="Mapa con las diversas zonas SER de Madrid, con las plazas de cada tipo según datos del ayuntamiento."/>
+    <meta name="author" content="Javier Jimenez Shaw" />
+
+	<link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" />
+	<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet-src.js"></script>
+
+	<link rel="stylesheet" href="https://unpkg.com/leaflet.control.layers.tree@1.0.0/L.Control.Layers.Tree.css" />
+	<script src="https://unpkg.com/leaflet.control.layers.tree@1.0.0/L.Control.Layers.Tree.js"></script>
+
+    <style type="text/css">
+        html, body { width: 100%; height: 100%; margin: 0; }
+        #map { width: 100%; height: 100%; }
+        .text_barrio:not(:empty) { color: #773687; background-color: #ffff0050; padding: 0.2em 0.6em; border-radius: 5px; }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script src="script.js"></script>
+</body>
+</html>
