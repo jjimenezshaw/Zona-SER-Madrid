@@ -4,15 +4,19 @@ var zonas_ids = []
 var zonas_layerGroup = {}
 
 function load_json (path, callback) {
-    var xhr0 = new XMLHttpRequest();
-    xhr0.open('GET', path);
-    xhr0.setRequestHeader('Content-Type', 'application/json');
-    xhr0.responseType = 'json';
-    xhr0.onload = function() {
-        if (xhr0.status !== 200) return
-        callback(xhr0.response);
-    };
-    xhr0.send();
+    try {
+        var xhr0 = new XMLHttpRequest();
+        xhr0.open('GET', path);
+        xhr0.setRequestHeader('Content-Type', 'application/json');
+        xhr0.responseType = 'json';
+        xhr0.onload = function() {
+            if (xhr0.status !== 200) return
+            callback(xhr0.response);
+        };
+        xhr0.send();
+    } catch(error) {
+        console.log(error);
+    }
 }
 function compute_url() {
     var selected = [];
@@ -154,6 +158,7 @@ function download_plazas_json() {
     zonas_ids.forEach(function(zona) {
         load_json('plazas_zona_ser_' + zona + '.geojson', function(response){
             var zonas = {}
+            zonas_layerGroup[zona] = L.layerGroup([]);
             L.geoJSON(response, {
                 style: function (feature) {
                     if (feature.properties.style) {
