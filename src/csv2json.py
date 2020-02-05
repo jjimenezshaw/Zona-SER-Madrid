@@ -75,16 +75,18 @@ def run(inputcsv, parquimetros, outputgeojson, encoding):
         features = geojson.FeatureCollection(v, properties={"zona": k})
         with open(outputgeojson + k + ".geojson", "w") as write_file:
             json.dump(features, write_file)
-    print(zonas.sort())
+    zonas.sort()
+    print("Zonas procesed: ", len(zonas))
+    print(zonas)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Parsea los ficheros csv de plazas y parquímetros de la Zona SER Madrid.')
     parser.add_argument('-i', '--input', dest='plazas',
-                        default='../sources/Listado_plazas _SER_2019.csv',
+                        default='../sources/Listado_plazas_SER_2020.csv',
                         help='fichero csv de plazas de la Zona SER Madrid "madrid.es: Zonas SER. Distintivos y parquímetros"')
     parser.add_argument('-p', '--parquimetros', dest='parquimetros',
-                        default='../sources/Parquimetros_2019.csv',
+                        default='../sources/Parquimetros_2020.csv',
                         help='fichero csv de parquímetros de la Zona SER Madrid')
     parser.add_argument('-o', '--output', dest='outputgeojson',
                         default='../web/plazas_zona_ser_',

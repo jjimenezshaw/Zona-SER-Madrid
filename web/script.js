@@ -1,40 +1,53 @@
 "use strict"
 
-var zonas_ids = []
-var zonas_layerGroup = {}
+var zonas_ids = [];
+var zonas_layerGroup = {};
+var basemaps = {};
 
 function load_json (path, callback) {
-    var xhr0 = new XMLHttpRequest();
-    xhr0.open('GET', path);
-    xhr0.setRequestHeader('Content-Type', 'application/json');
-    xhr0.responseType = 'json';
-    xhr0.onload = function() {
-        if (xhr0.status !== 200) return
-        callback(xhr0.response);
-    };
-    xhr0.send();
+    try {
+        var xhr0 = new XMLHttpRequest();
+        xhr0.open('GET', path);
+        xhr0.setRequestHeader('Content-Type', 'application/json');
+        xhr0.responseType = 'json';
+        xhr0.onload = function() {
+            if (xhr0.status !== 200) return
+            callback(xhr0.response);
+        };
+        xhr0.send();
+    } catch(error) {
+        console.log(error);
+    }
 }
 function compute_url() {
     var selected = [];
+    var basemapid;
     Object.keys(zonas_layerGroup).forEach(function(id){
         var lay = zonas_layerGroup[id];
         if (map.hasLayer(lay)) {
             selected.push(id);
         }
     });
+    Object.keys(basemaps).forEach(function(id){
+        var lay = basemaps[id];
+        if (map.hasLayer(lay)) {
+            basemapid = id;
+        }
+    });
     var center = map.getCenter().lat.toFixed(6) + "," + map.getCenter().lng.toFixed(6);
     var zoom = map.getZoom();
 
-    update_url(center, zoom, selected.join(","));
+    update_url(center, zoom, basemapid, selected.join(","));
 }
-function update_url(center, zoom, selected) {
+function update_url(center, zoom, basemapid, selected) {
     var url = window.location.href;
     var urlParts = url.split('?');
     if (urlParts.length > 0) {
         var baseUrl = urlParts[0];
 
-        var selected_str = selected ? '&s=' + selected : ''
-        var updatedQueryString = 'c=' + center + '&z=' + zoom + selected_str;
+        var selected_str = selected ? '&s=' + selected : '';
+        var basemapid_str = basemapid ? '&b=' + basemapid : '';
+        var updatedQueryString = 'c=' + center + '&z=' + zoom + basemapid_str + selected_str;
 
         var updatedUri = baseUrl + '?' + updatedQueryString;
         window.history.replaceState({}, document.title, updatedUri);
@@ -89,6 +102,13 @@ var esri_sat = L.tileLayer(
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     {attribution: copyr + '© Esri.com', maxZoom: 21}
 );
+
+basemaps = {
+    osm: osm,
+    wiki: wiki,
+    esri_map: esri_map,
+    esri_sat: esri_sat
+};
 
 var baseTree = [
     {label: "OSM", layer: osm},
@@ -154,6 +174,7 @@ function download_plazas_json() {
     zonas_ids.forEach(function(zona) {
         load_json('plazas_zona_ser_' + zona + '.geojson', function(response){
             var zonas = {}
+            zonas_layerGroup[zona] = L.layerGroup([]);
             L.geoJSON(response, {
                 style: function (feature) {
                     if (feature.properties.style) {
@@ -192,11 +213,14 @@ function download_plazas_json() {
             tree = L.control.layers.tree(baseTree, layers_in_control, {collapsed: lastAdd});
             tree.addTo(map);
             if (lastAdd) {
-                map.on('moveend zoomend overlayadd overlayremove', function() {
+                map.on('moveend zoomend overlayadd overlayremove baselayerchange', function(e) {
                     compute_url();
                 });
                 var params = parse_url();
                 console.log("Zonas Loaded " + layers_in_control.length);
+                if (params['b'] && params['b'] in basemaps) {
+                    map.addLayer(basemaps[params['b']]);
+                }
                 if (params['z'] && params['c']) {
                     map.flyTo(params['c'].split(','), parseInt(params['z']));
                 }
