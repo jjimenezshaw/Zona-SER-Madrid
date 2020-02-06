@@ -83,6 +83,12 @@ var zoom = 14;
 var copyr = '<a href="http://javier.jimenezshaw.com" target="_blank">@ Javier Jimenez Shaw</a> | ';
 
 // Define some base layers
+
+var ign = L.tileLayer(
+    '//www.ign.es/wmts/ign-base?layer=IGNBaseTodo&tilematrixset=EPSG:3857&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image/jpeg&TileMatrix={z}&TileCol={x}&TileRow={y}',
+    {attribution: copyr + '© IGN.es', maxZoom: 20}
+);
+
 var osm = L.tileLayer(
     '//{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     {attribution: copyr + '© OpenStreetMap contributors', maxZoom: 19}
@@ -104,6 +110,7 @@ var esri_sat = L.tileLayer(
 );
 
 basemaps = {
+    ign: ign,
     osm: osm,
     wiki: wiki,
     esri_map: esri_map,
@@ -111,6 +118,7 @@ basemaps = {
 };
 
 var baseTree = [
+    {label: "IGN", layer: ign},
     {label: "OSM", layer: osm},
     {label: "Wikimedia", layer: wiki},
     {label: "Esri Map", layer: esri_map},
@@ -119,7 +127,7 @@ var baseTree = [
 
 // The map
 var map = L.map('map', {
-    layers: [wiki],
+    layers: [ign],
     center: center,
     zoom: zoom,
     maxZoom: 21,
