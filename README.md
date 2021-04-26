@@ -9,6 +9,8 @@ Madrid tiene desde hace años limitado el aparcamiento de vehículos dentro de (
 
 Este visor web pretende facilitar la ubicación de las plazas por colores y parquímetros dentro de la Zona SER de Madrid de una forma ágil en un mapa interactivo.
 
+![image](https://user-images.githubusercontent.com/534414/116054093-a0915780-a67b-11eb-8e73-2577726a5d54.png)
+
 ## Origen de los datos
 Los datos de las plazas y parquímetros las he descargado de la página del ayuntamiento ["Zonas SER. Distintivos y parquímetros"](https://datos.madrid.es/portal/site/egob/menuitem.c05c1f754a33a9fbe4b2e4b284f1a5a0/?vgnextoid=4973b0dd4a872510VgnVCM1000000b205a0aRCRD). Los encontrará en la carpeta [sources](sources).
 
