@@ -47,6 +47,9 @@ def run(inputcsv, parquimetros, outputgeojson, encoding):
             zona = getZona(row)
             calle = getCalle(row, 'num_finca')
             stroke = "black"
+            if row['fecha_baja']:
+                # print(row['fecha_alta'], row['fecha_baja'] , row['matricula'], zona, calle)
+                continue
             feature = geojson.Feature(geometry=point, properties={
                 "description": "Parquímetro " + row['matricula'] + "<br> " + calle + "<br> Zona: " + zona,
                 "stroke": stroke,
