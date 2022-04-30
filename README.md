@@ -25,6 +25,8 @@ La información dada por del ayuntamiento sólo son coordendas de un punto y nú
 
 Los "Ámbitos Diferenciados del Servicio de Estacionamiento Regulado" están marcados con plazas "rojas" (zona especial de La Paz) y "naranjas" (Templo de Debod y Cuesta de la Vega). Las plazas "cyan" son de Alta Rotación.
 
+Como extra hay un GeoJSON con [todas las plazas de Alta Rotación](web/plazas_zona_ser_alta_rotacion.geojson).
+
 No se muestran todas las plazas inicialmente para no ralentizar el navegador. Seleccione sólo las zonas que le interesen para que la experiencia sea fluida.
 
 ## Actualización de datos

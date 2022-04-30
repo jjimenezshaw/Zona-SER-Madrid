@@ -84,6 +84,15 @@ def run(inputcsv, parquimetros, outputgeojson, encoding):
         features = geojson.FeatureCollection(v, properties={"zona": k})
         with open(outputgeojson + k + ".geojson", "w") as write_file:
             json.dump(features, write_file)
+
+    alta_rot = []
+    for k, v in featureColls.items():
+        for feat in v:
+            if 'Alta Rotación' in feat.properties['description']:
+                alta_rot.append(feat)
+    with open(outputgeojson + "alta_rotacion.geojson", "w") as write_file:
+        json.dump(geojson.FeatureCollection(alta_rot), write_file)
+
     zonas.sort()
     print("Zonas procesed: ", len(zonas))
     print(zonas)
