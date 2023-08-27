@@ -15,8 +15,8 @@ def getPoint(row):
     return point
 
 def getZona(row):
-    zona = row['barrio'][1] + row['barrio'][4]
-    return zona
+    zona = int(row['barrio'][0:2])*10 + int(row['barrio'][4])
+    return str(zona)
 
 def getCalle(row, number_field):
     calle = row['calle'].split(", ")
@@ -66,7 +66,7 @@ def run(inputcsv, parquimetros, outputgeojson, encoding):
             zona = getZona(row)
             calle = getCalle(row, 'num_finca')
             stroke = colors[row['color']]
-            plazas = int(row['num_plazas'])
+            plazas = int(row['num_plazas'] or 0)
             desc = calle + "<br> plazas: " + str(plazas) + "<br> Zona: " + zona
             if row['color'].endswith('Alta Rotación'):
                 desc += '<br> <a href="https://www.madrid360.es/buscador/?q=alta+rotaci%C3%B3n" target=_blank>Alta Rotación</a>'
@@ -101,16 +101,16 @@ def run(inputcsv, parquimetros, outputgeojson, encoding):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Parsea los ficheros csv de plazas y parquímetros de la Zona SER Madrid.')
     parser.add_argument('-i', '--input', dest='plazas',
-                        default='../sources/Listado_plazas_SER_2022_04.csv',
+                        default='../sources/Listado_plazas_SER_2023_08.csv',
                         help='fichero csv de plazas de la Zona SER Madrid "madrid.es: Zonas SER. Distintivos y parquímetros"')
     parser.add_argument('-p', '--parquimetros', dest='parquimetros',
-                        default='../sources/Parquimetros_2022_04.csv',
+                        default='../sources/Parquimetros_2023_08.csv',
                         help='fichero csv de parquímetros de la Zona SER Madrid')
     parser.add_argument('-o', '--output', dest='outputgeojson',
                         default='../web/plazas_zona_ser_',
                         help='fichero GeoJSON de salida')
     parser.add_argument('-e', '--encoding', dest='encoding',
-                        default='UTF-8-sig',
+                        default='latin-1',
                         help='encoding del fichero csv (default: UTF-8-sig)')
 
     # Files downloaded from
