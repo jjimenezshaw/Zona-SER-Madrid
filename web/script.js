@@ -153,7 +153,7 @@ load_json('zonas_ser.geojson', function(response){
             },
             onEachFeature: function (feature, layer) {
                 if (feature.properties.name) {
-                    var id = feature.properties.name.substr(0,2);
+                    var id = feature.properties.name.substr(0,3).trim();
                     zonas_ids.push(id);
                     layer.on('mouseover', function (e) {
                         barrio_text.getContainer().innerHTML = feature.properties.name;
@@ -212,10 +212,10 @@ function download_plazas_json() {
             Object.keys(zonas).sort().forEach(function(zona) {
                 var layers = zonas[zona];
                 zonas_layerGroup[zona] = L.layerGroup(layers);
-                layers_in_control.push({label: "Zona " + zona, layer: zonas_layerGroup[zona]});
+                layers_in_control.push({label: "Zona " + zona, id: Number(zona), layer: zonas_layerGroup[zona]});
             });
 
-            layers_in_control.sort(function(a,b) { return a.label.localeCompare(b.label)});
+            layers_in_control.sort(function(a,b) { return a.id - b.id; });
             var lastAdd = layers_in_control.length == zonas_ids.length;
             tree.remove();
             tree = L.control.layers.tree(baseTree, layers_in_control, {collapsed: lastAdd});
