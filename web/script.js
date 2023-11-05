@@ -94,11 +94,6 @@ var osm = L.tileLayer(
     {attribution: copyr + '© OpenStreetMap contributors', maxZoom: 19}
 );
 
-var wiki = L.tileLayer(
-    '//maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png',
-    {attribution: copyr + '© OpenStreetMap contributors', maxZoom: 19}
-);
-
 var esri_map = L.tileLayer(
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
     {attribution: copyr + '© Esri.com', maxZoom: 19}
@@ -112,7 +107,6 @@ var esri_sat = L.tileLayer(
 basemaps = {
     ign: ign,
     osm: osm,
-    wiki: wiki,
     esri_map: esri_map,
     esri_sat: esri_sat
 };
@@ -120,7 +114,6 @@ basemaps = {
 var baseTree = [
     {label: "IGN", layer: ign},
     {label: "OSM", layer: osm},
-    {label: "Wikimedia", layer: wiki},
     {label: "Esri Map", layer: esri_map},
     {label: "Esri Sat", layer: esri_sat},
 ];
@@ -142,7 +135,7 @@ barrio_text.onAdd = function(map) {return L.DomUtil.create('div', 'text_barrio')
 barrio_text.onRemove = function(map) {};
 barrio_text.addTo(map);
 
-load_json('zonas_ser.geojson', function(response){
+load_json('zonas.geojson', function(response){
     var jsonLayer = L.geoJSON(response,
         {
             style: {
@@ -153,7 +146,7 @@ load_json('zonas_ser.geojson', function(response){
             },
             onEachFeature: function (feature, layer) {
                 if (feature.properties.name) {
-                    var id = feature.properties.name.substr(0,3).trim();
+                    var id = feature.properties.zona;
                     zonas_ids.push(id);
                     layer.on('mouseover', function (e) {
                         barrio_text.getContainer().innerHTML = feature.properties.name;
