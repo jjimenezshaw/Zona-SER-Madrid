@@ -175,8 +175,9 @@ load_json('zonas.geojson', function(response){
 });
 
 function download_plazas_json() {
-    load_json('calles.geojson', function(response){
+    load_json('objects.geojson', function(response){
         var zonas = {}
+        var zonas_parquimetros = {}
         var colors = {'Verde': 'green', 'Azul': 'blue', 'Naranja': 'orange', 'Rojo': 'red', 'Alta Rotación': 'cyan', '(null)': 'grey', undefined: 'black'};
         L.geoJSON(response, {
             style: function (feature) {
@@ -195,6 +196,10 @@ function download_plazas_json() {
                 if (zona && zona != '--') {
                     zonas[zona] = zonas[zona] || [];
                     zonas[zona].push(layer);
+                    if (layer instanceof L.CircleMarker) {
+                        zonas_parquimetros[zona] = zonas_parquimetros[zona] || [];
+                        zonas_parquimetros[zona].push(layer)
+                    }
                 }
                 if (description) {
                     layer.bindPopup(description);
@@ -214,6 +219,22 @@ function download_plazas_json() {
         tree.addTo(map);
         map.on('moveend zoomend overlayadd overlayremove baselayerchange', function(e) {
             compute_url();
+        });
+        map.on('zoomend overlayadd', function(e) {
+            var currentZoom = map.getZoom();
+            if(currentZoom >= 16) {
+                Object.keys(zonas_parquimetros).sort().forEach(function(zona) {
+                    if (map.hasLayer(zonas_layerGroup[zona])) {
+                        var layers = zonas_parquimetros[zona];
+                        layers.forEach(l => map.addLayer(l));
+                    }
+                })
+            } else {
+                Object.keys(zonas_parquimetros).sort().forEach(function(zona) {
+                    var layers = zonas_parquimetros[zona];
+                    layers.forEach(l => map.removeLayer(l));
+                })
+            }
         });
         var params = parse_url();
         console.log("Zonas Loaded " + layers_in_control.length);
