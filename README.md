@@ -12,28 +12,22 @@ Este visor web pretende facilitar la ubicación de las plazas por colores y parq
 ![image](https://user-images.githubusercontent.com/534414/116054093-a0915780-a67b-11eb-8e73-2577726a5d54.png)
 
 ## Origen de los datos
-Los datos de las plazas y parquímetros las he descargado de las páginas del ayuntamiento ["Servicio de Estacionamiento Regulado (SER). Calles y número de plazas"](https://datos.madrid.es/portal/site/egob/menuitem.c05c1f754a33a9fbe4b2e4b284f1a5a0/?vgnextoid=4973b0dd4a872510VgnVCM1000000b205a0aRCRD) y ["Servicio de Estacionamiento Regulado (SER). Parquímetros"](https://datos.madrid.es/portal/site/egob/menuitem.c05c1f754a33a9fbe4b2e4b284f1a5a0/?vgnextoid=65d85d6f40b86710VgnVCM2000001f4a900aRCRD). Los encontrará en la carpeta [sources](sources).
-
-El fichero GeoJSON con las más de 49 zonas detalladas lo he creado a mano, ayudado de datos de los barrios ("Divisiones administrativas: distritos, barrios y divisiones históricas" en la web del ayuntamiento) y alguna otra página web. Por tanto puede tener errores. Lamentablemente el ayuntamiento no tiene disponible en su web un fichero en formato geográfico (shp, kml, geojson, ...) con las distintas zonas. Lo he solicitado (como otra gente antes), y la respuesta ha sido "La unidad responsable nos informa de que actualmente no se encuentra disponible la información que requiere".
+Los datos de las zonas, plazas y parquímetros las he descargado de las páginas del ayuntamiento ["Servicio de Estacionamiento Regulado (SER)"](https://geoportal.madrid.es/IDEAM_WBGEOPORTAL/dataset.iam?id=9506daa5-e317-11ec-8359-60634c31c0aa). Se ha utilizado el ficheron en formato SHP. Los encontrará en la carpeta [sources](sources).
 
 Esta web no puede ser usada como fuente inequívoca para temas jurídicos. En ese caso póngase en contacto con el ayuntamiento directamente. Es meramente de consulta, y no está mantenida por el ayuntamiento de Madrid ni por ningún organismo público.
 
 ## Visor web
-El visor web hecho con [Leaflet](https://leafletjs.com/) muestra inicialmente las 49 zonas marcadas en violeta. Haciendo click en cualquiera de ellas mostrará puntos verdes y azules para las plazas de aparcamiento, y negros para los parquímetros. Al hacer click en los puntos se muestra un diálogo con información del mismo. 
-
-La información dada por del ayuntamiento sólo son coordendas de un punto y número de plazas (y algún dato más). Desgraciadamente no hay coordenadas del área que cubren esas plazas. Por ese motivo se representan como un círculo, y no una línea o rectángulo. El tamaño de los puntos es proporcional al número de plazas.
+El visor web hecho con [Leaflet](https://leafletjs.com/) muestra inicialmente las 61 zonas marcadas en violeta. Haciendo click en cualquiera de ellas mostrará líneas verdes y azules (y otros colores extra) para las plazas de aparcamiento, y puntos negros para los parquímetros. Al hacer click en los elementos se muestra un diálogo con información del mismo.
 
 Los "Ámbitos Diferenciados del Servicio de Estacionamiento Regulado" están marcados con plazas "rojas" (zona especial de La Paz) y "naranjas" (Templo de Debod y Cuesta de la Vega). Las plazas "cyan" son de Alta Rotación.
 
 No se muestran todas las plazas inicialmente para no ralentizar el navegador. Seleccione sólo las zonas que le interesen para que la experiencia sea fluida.
 
-Como extra en el repositorio hay un GeoJSON con [todas las plazas de Alta Rotación](web/plazas_zona_ser_alta_rotacion.geojson).
-
 ## Actualización de datos
-La versión actual está hecha en agosto de 2023. A esta fecha todavía falta alguna información por publicar en la web del ayuntamiento.
+La versión actual está hecha el 7 de noviembre de 2023.
 
 ## Conversor en Python
-Para convertir los datos iniciales del ayuntamiento (en formato csv) a un formato geográfico estandar (GeoJSON), hay un script en la carpeta [src](src). 
+Para convertir los datos iniciales del ayuntamiento (en formato shp) a un formato geográfico estandar (GeoJSON), hay un script en la carpeta [src](src).
 
 ## Licencia
 Todo el contenido original de este repositorio está bajo la licencia [BSD-3-Clause](LICENSE).

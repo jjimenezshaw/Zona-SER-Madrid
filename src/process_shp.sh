@@ -10,6 +10,8 @@ rm $DST/calles.geojson
 rm $DST/objects.geojson
 rm $SRC/parquimetros.geojson
 
+# https://geoportal.madrid.es/IDEAM_WBGEOPORTAL/dataset.iam?id=9506daa5-e317-11ec-8359-60634c31c0aa
+
 ogr2ogr -f gpkg $TOTAL /vsizip/$SRC/BARRIOS_APARCAMIENTOS_SER.zip
 ogrinfo $TOTAL -sql "ALTER TABLE Limite_Barrios_Zona_SER ADD COLUMN zona Text"
 ogrinfo $TOTAL -sql "ALTER TABLE Limite_Barrios_Zona_SER ADD COLUMN name Text"
