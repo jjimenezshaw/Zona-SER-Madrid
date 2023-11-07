@@ -5,5 +5,7 @@ source ./venv/bin/activate
 
 pip3 install utm
 pip3 install geojson
+pip3 install numpy
+pip3 install GDAL==3.4.1
 
 # deactivate

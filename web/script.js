@@ -94,11 +94,6 @@ var osm = L.tileLayer(
     {attribution: copyr + '© OpenStreetMap contributors', maxZoom: 19}
 );
 
-var wiki = L.tileLayer(
-    '//maps.wikimedia.org/osm-intl/{z}/{x}/{y}.png',
-    {attribution: copyr + '© OpenStreetMap contributors', maxZoom: 19}
-);
-
 var esri_map = L.tileLayer(
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
     {attribution: copyr + '© Esri.com', maxZoom: 19}
@@ -112,7 +107,6 @@ var esri_sat = L.tileLayer(
 basemaps = {
     ign: ign,
     osm: osm,
-    wiki: wiki,
     esri_map: esri_map,
     esri_sat: esri_sat
 };
@@ -120,7 +114,6 @@ basemaps = {
 var baseTree = [
     {label: "IGN", layer: ign},
     {label: "OSM", layer: osm},
-    {label: "Wikimedia", layer: wiki},
     {label: "Esri Map", layer: esri_map},
     {label: "Esri Sat", layer: esri_sat},
 ];
@@ -142,7 +135,7 @@ barrio_text.onAdd = function(map) {return L.DomUtil.create('div', 'text_barrio')
 barrio_text.onRemove = function(map) {};
 barrio_text.addTo(map);
 
-load_json('zonas_ser.geojson', function(response){
+load_json('zonas.geojson', function(response){
     var jsonLayer = L.geoJSON(response,
         {
             style: {
@@ -153,7 +146,7 @@ load_json('zonas_ser.geojson', function(response){
             },
             onEachFeature: function (feature, layer) {
                 if (feature.properties.name) {
-                    var id = feature.properties.name.substr(0,3).trim();
+                    var id = feature.properties.zona;
                     zonas_ids.push(id);
                     layer.on('mouseover', function (e) {
                         barrio_text.getContainer().innerHTML = feature.properties.name;
@@ -172,6 +165,9 @@ load_json('zonas_ser.geojson', function(response){
                         }
                     });
                 }
+            },
+            filter: function(feature, layer) {
+                return feature.properties.zona != '--';
             }
         });
     jsonLayer.addTo(map);
@@ -179,67 +175,81 @@ load_json('zonas_ser.geojson', function(response){
 });
 
 function download_plazas_json() {
-    zonas_ids.forEach(function(zona) {
-        load_json('plazas_zona_ser_' + zona + '.geojson', function(response){
-            var zonas = {}
-            zonas_layerGroup[zona] = L.layerGroup([]);
-            L.geoJSON(response, {
-                style: function (feature) {
-                    if (feature.properties.style) {
-                        return feature.properties.style;
-                    }
-                },
-                pointToLayer: function (feature, latlng) {
-                    if (feature.properties.circle) {
-                        return L.circleMarker(latlng, feature.properties.circle);
-                    } else {
-                        return L.marker(latlng);
-                    }
-                },
-                onEachFeature: function (feature, layer) {
-                    var zona = feature.properties.zona;
-                    var description = feature.properties.description;
-                    if (zona) {
-                        zonas[zona] = zonas[zona] || [];
-                        zonas[zona].push(layer);
-                    }
-                    if (description) {
-                        layer.bindPopup(description);
-                    }
+    load_json('objects.geojson', function(response){
+        var zonas = {}
+        var zonas_parquimetros = {}
+        var colors = {'Verde': 'green', 'Azul': 'blue', 'Naranja': 'orange', 'Rojo': 'red', 'Alta Rotación': 'cyan', '(null)': 'grey', undefined: 'black'};
+        L.geoJSON(response, {
+            style: function (feature) {
+                if (feature.properties.style) {
+                    return feature.properties.style;
                 }
-            });
 
-            Object.keys(zonas).sort().forEach(function(zona) {
-                var layers = zonas[zona];
-                zonas_layerGroup[zona] = L.layerGroup(layers);
-                layers_in_control.push({label: "Zona " + zona, id: Number(zona), layer: zonas_layerGroup[zona]});
-            });
-
-            layers_in_control.sort(function(a,b) { return a.id - b.id; });
-            var lastAdd = layers_in_control.length == zonas_ids.length;
-            tree.remove();
-            tree = L.control.layers.tree(baseTree, layers_in_control, {collapsed: lastAdd});
-            tree.addTo(map);
-            if (lastAdd) {
-                map.on('moveend zoomend overlayadd overlayremove baselayerchange', function(e) {
-                    compute_url();
-                });
-                var params = parse_url();
-                console.log("Zonas Loaded " + layers_in_control.length);
-                if (params['b'] && params['b'] in basemaps) {
-                    map.addLayer(basemaps[params['b']]);
+                return {color: colors[feature.properties.Color], "weight": 5}
+            },
+            pointToLayer: function (feature, latlng) {
+                return L.circleMarker(latlng, {"radius": 2, "fillColor": 'black', "color": 'black', "fillOpacity": 0.8});
+            },
+            onEachFeature: function (feature, layer) {
+                var zona = feature.properties.zona;
+                var description = feature.properties.description;
+                if (zona && zona != '--') {
+                    zonas[zona] = zonas[zona] || [];
+                    zonas[zona].push(layer);
+                    if (layer instanceof L.CircleMarker) {
+                        zonas_parquimetros[zona] = zonas_parquimetros[zona] || [];
+                        zonas_parquimetros[zona].push(layer)
+                    }
                 }
-                if (params['z'] && params['c']) {
-                    map.flyTo(params['c'].split(','), parseInt(params['z']));
-                }
-                if (params['s']) {
-                    params['s'].split(',').forEach(function(id) {
-                        if (id in zonas_layerGroup) {
-                            map.addLayer(zonas_layerGroup[id]);
-                        }
-                    });
+                if (description) {
+                    layer.bindPopup(description);
                 }
             }
         });
+
+        Object.keys(zonas).sort().forEach(function(zona) {
+            var layers = zonas[zona];
+            zonas_layerGroup[zona] = L.layerGroup(layers);
+            layers_in_control.push({label: "Zona " + zona, id: Number(zona), layer: zonas_layerGroup[zona]});
+        });
+
+        layers_in_control.sort(function(a,b) { return a.id - b.id; });
+        tree.remove();
+        tree = L.control.layers.tree(baseTree, layers_in_control, {collapsed: true});
+        tree.addTo(map);
+        map.on('moveend zoomend overlayadd overlayremove baselayerchange', function(e) {
+            compute_url();
+        });
+        map.on('zoomend overlayadd', function(e) {
+            var currentZoom = map.getZoom();
+            if(currentZoom >= 16) {
+                Object.keys(zonas_parquimetros).sort().forEach(function(zona) {
+                    if (map.hasLayer(zonas_layerGroup[zona])) {
+                        var layers = zonas_parquimetros[zona];
+                        layers.forEach(l => map.addLayer(l));
+                    }
+                })
+            } else {
+                Object.keys(zonas_parquimetros).sort().forEach(function(zona) {
+                    var layers = zonas_parquimetros[zona];
+                    layers.forEach(l => map.removeLayer(l));
+                })
+            }
+        });
+        var params = parse_url();
+        console.log("Zonas Loaded " + layers_in_control.length);
+        if (params['b'] && params['b'] in basemaps) {
+            map.addLayer(basemaps[params['b']]);
+        }
+        if (params['z'] && params['c']) {
+            map.flyTo(params['c'].split(','), parseInt(params['z']));
+        }
+        if (params['s']) {
+            params['s'].split(',').forEach(function(id) {
+                if (id in zonas_layerGroup) {
+                    map.addLayer(zonas_layerGroup[id]);
+                }
+            });
+        }
     });
 }
